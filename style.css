@@ -1,0 +1,143 @@
+body, html {
+  height: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+}
+
+canvas {
+  border: 1px solid #000;
+  margin-top: 10px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.toolbar button {
+  margin: 0 5px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.palette {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 20px);
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.palette button {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+
+.palette {
+  display: flex;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 5px;
+  margin-top: 20px;
+  overflow-x: auto;
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  background: #fff;
+  padding: 5px;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.palette button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px;
+  border: none;
+  cursor: pointer;
+}
+
+.palette span {
+  font-size: 12px;
+  margin-top: 5px;
+  color: #333;
+  text-align: center;
+}
+
+.content {
+  padding-bottom: 60px; 
+}
+
+
+.content {
+  padding-bottom: 80px; 
+  padding-top: 20px; 
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.toolbar {
+  margin-bottom: 10px;
+}
+
+.canvas-container {
+  padding: 20px; 
+  background-color: #f8f8f8; 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+}
+
+
+
+.palette {
+  display: flex;
+  flex-wrap: wrap; 
+  justify-content: center;
+  gap: 10px; 
+  padding: 10px 0; 
+  overflow-x: auto;
+  background: #fff; 
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2); 
+}
+
+.palette button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 40px; 
+  height: 40px; 
+  border: none;
+  cursor: pointer;
+  position: relative; 
+}
+
+.palette span {
+  display: none; 
+  position: absolute;
+  bottom: -20px; 
+  left: 50%;
+  transform: translateX(-50%); 
+  white-space: nowrap; 
+  font-size: 12px;
+  padding: 2px 8px; 
+  background: rgba(255, 255, 255, 0.9); 
+  border-radius: 4px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+}
+
+.palette button:hover span {
+  display: block; 
+}
+
+
+
