@@ -23,7 +23,7 @@ body, html {
 	display:inline;
 	position:absolute;
 	width:100%;
-	height:30px;
+	height:32px;
 	top:0;
 	left:50%;
 	transform:translateX(-50%);
@@ -46,6 +46,8 @@ body, html {
 }
 
 .canvas-container {
+	position:absolute;
+	top:32px;
 	/*If you ever need to set a proerty here...*/
 }
 
@@ -56,8 +58,7 @@ body, html {
 	background: #fff; 
 	box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2); 
 	height:60px;
-	width:50%;
-	max-width:400px;
+	width:400px;
 	overflow-y:scroll;
 	overflow-x:clip;
 	left:50%;
@@ -66,6 +67,7 @@ body, html {
 	transform:translateX(-50%);
 	position:absolute;
 	transition-duration:0.3s;
+	border-radius:15px;
 }
 .palette:hover{
 	transition-duration:0.7s;
@@ -81,7 +83,7 @@ body, html {
 	margin:5px;
 	border: none;
 	cursor: pointer;
-	
+
 }
 .palette span {
 	position: relative;
