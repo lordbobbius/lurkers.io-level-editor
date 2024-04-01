@@ -1,71 +1,30 @@
-import * as Utils from '/utils.js';
+let texture = new Image();
+texture.src = "textures.png";
 
-let map = new Utils.Map(50, 30);
-const app = new PIXI.Application();
-await app.init({ background: Utils.settings.backgroundColor, width:window.innerWidth, height:window.innerHeight-32 });
+//Create canvas function
+function createHiPPICanvas(width, height) {
+	const ratio = window.devicePixelRatio;
+	const canvas = document.createElement("canvas");
 
-document.getElementById("canvas-container").appendChild(app.canvas);
+	canvas.width = width * ratio;
+	canvas.height = height * ratio;
+	canvas.style.width = width + "px";
+	canvas.style.height = height + "px";
+	canvas.getContext("2d").scale(ratio, ratio);
 
-//Make it looks pixelated and make PIXIJS render everything correctly
-PIXI.TextureStyle.defaultOptions.scaleMode = "nearest"
-//Load everything
-await PIXI.Assets.load('texture.png');
-const spriteSheetData = await PIXI.Assets.load('texture.json')
+	return canvas;
+}
 
-// Create the SpriteSheet from data and image
-const spritesheet = new PIXI.Spritesheet(
-	PIXI.Texture.from('texture.png'),
-	spriteSheetData.data
-);
 
-// Generate all the Textures asynchronously
-await spritesheet.parse();
-// Create the sprite and add it to the stage
-console.log(spritesheet)
+const canvas = createHiPPICanvas(window.innerWidth, window.innerHeight);
+document.getElementById("canvas-container").appendChild(canvas);
+const ctx = canvas.getContext('2d');
 
-let drawContainer = new PIXI.Container();
-drawContainer.x = 0;
-drawContainer.y = 0;
-drawContainer.interactive = true
-drawContainer.hitArea = new PIXI.Rectangle(0, 0, window.innerWidth, window.innerHeight-32)
-drawContainer.eventMode = "dynamic";
-drawContainer.scale.set(5);
-console.log(drawContainer)
-app.stage.addChild(drawContainer);
+const pixelSize = 8;
 
-let drawBlock = "BedrockBlock";
+let currentColor = '#000000';
+
 let isDrawing = false;
-
-drawContainer.on("mousedown", (event) => {
-	isDrawing = true;
-	draw(event.client.x, event.client.y);
-});
-drawContainer.on("touchstart", (event) => {
-	isDrawing = true;
-	draw(event.client.x, event.client.y);
-});
-drawContainer.on("mousemove", (event) => {
-	if(isDrawing){
-		draw(event.client.x, event.client.y);
-	}
-});
-drawContainer.on("touchmove", (event) => {
-	if(isDrawing){
-		draw(event.client.x, event.client.y);
-	}
-});
-drawContainer.on('mouseup', (event) => {
-	isDrawing = false;
-});
-drawContainer.on( "touchend", (event) => {
-	isDrawing = false;
-});
-
-app.ticker.add((ticker) => {
-	
-});
-
-
 
 function startDrawing(evt) {
 	isDrawing = true;
@@ -76,33 +35,19 @@ function stopDrawing() {
 	isDrawing = false;
 }
 
-let palette = new PIXI.Application();
-await palette.init({ background: '#fff', width: 380, height:48*9 });
-document.getElementById("palette").appendChild(palette.canvas);
-function createPalette(){
-	for(let i = 0; i < Utils.palette.length; i++){
-		let element = new PIXI.Sprite(spritesheet.textures[Utils.palette[i].label])
-		element.x=i*48-((48*8)*Math.floor(i/8));
-		element.y=Math.floor(i/8)*48;
-		element.scale.set(5);
-		element.interactive = true;
-		element.eventMode = "dynamic";
-		element.on("mousedown", (event) => {
-			drawBlock = Utils.palette[i].label;
-			console.log(Utils.palette[i].label);
-		});
-		element.on("touchstart", (event) => {
-			drawBlock = Utils.palette[i].label;
-			console.log(Utils.palette[i].label);
-		});
-		palette.stage.addChild(element);
-	}
+function draw(evt) {
+	if (!isDrawing) return;
+
+	const x = Math.floor(evt.offsetX / pixelSize);
+	const y = Math.floor(evt.offsetY / pixelSize);
+
+	ctx.fillStyle = currentColor;
+	ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
 }
 
-createPalette();
 
 function clearCanvas() {
-	drawContainer.removeChildren();
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function saveCanvas() {
@@ -113,22 +58,80 @@ function saveCanvas() {
 	link.click();
 }
 
-const clearButton = document.getElementById('clear');
-clearButton.addEventListener('click', clearCanvas);
+function setCurrentColor(color) {
+	currentColor = color;
+}
 
-const saveButton = document.getElementById('save');
-saveButton.addEventListener('click', saveCanvas);
+const palette = [
+	//{ label: 'AirBlock', color: '#87ceeb' },
+	//{ label: 'BackgroundBlock', color: '#015c1d' },
+	{ label: 'BedrockBlock', color: '#353535' },
+	{ label: 'BerryBushBlock', color: '#840b0b' },
+	//{ label: 'Block', color: '#ffffff' },
+	{ label: 'BrickBackgroundBlock', color: '#222222' },
+	{ label: 'BrickBlock', color: '#444444' },
+	{ label: 'CoalBlock', color: '#0e0e0e' },
+	{ label: 'CreepBlock', color: '#2a2e2b' },
+	{ label: 'DirtBackgroundBlock', color: '#271e03' },
+	{ label: 'DirtBlock', color: '#85480f' },
+	//{ label: 'FarmingBlock', color: '#c7a231' },
+	{ label: 'GoldBlock', color: '#fdc53b' },
+	{ label: 'Grass', color: '#659d00' },
+	{ label: 'IronBlock', color: '#8c7054' },
+	{ label: 'IronSpikeBlock', color: '#888999' },
+	{ label: 'LadderBlock', color: '#97865d' },
+	{ label: 'MithrilBlock', color: '#23a7d9' },
+	{ label: 'PlatformBlock', color: '#aa621f' },
+	{ label: 'ShingleBlock', color: '#3367a1' },
+	{ label: 'Snow', color: '#d7ded8' },
+	{ label: 'StairBrickBlock', color: '#4b5a81' },
+	{ label: 'StairWoodBlock', color: '#9b6518' },
+	{ label: 'SteelBlock', color: '#a0a0a0' },
+	{ label: 'StoneBackgroundBlock', color: '#2f552d' },
+	{ label: 'StoneBlock', color: '#999497' },
+	//{ label: 'StructureBlock', color: '#767676' },
+	{ label: 'TorchBlock', color: '#edbb4f' },
+	{ label: 'BirchLeaves', color: '#2f7b32' },
+	{ label: 'BirchSapling', color: '#c6843c' },
+	{ label: 'BirchTrunk', color: '#7b3c14' },
+	{ label: 'WaterBlock', color: '#365cab' },
+	{ label: 'WoodBackgroundBlock', color: '#47200b' },
+	{ label: 'WoodBlock', color: '#aa761f' },
+	{ label: 'WoodSpikeBlock', color: '#aa5a1a' }
+];
 
-function draw(x, y){
-	let xPos = Math.floor(x/(Utils.settings.pixelScale*8))
-	let yPos = Math.floor((y-32)/(Utils.settings.pixelScale*8))
-	console.log(xPos, yPos);
-	if(xPos >= 0 && xPos < map[0].length && yPos >= 0 && yPos < map.length){
-		let block = new PIXI.Sprite(spritesheet.textures[drawBlock]);
-		block.x = xPos*8;
-		block.y = yPos*8;
-		if(map[yPos][xPos] === 0){
-			drawContainer.addChild(block);
-		}
-	}
+document.addEventListener('DOMContentLoaded', () => {
+	canvas.addEventListener('mousedown', startDrawing);
+	canvas.addEventListener('mouseup', stopDrawing);
+	canvas.addEventListener('mousemove', draw);
+	canvas.addEventListener('mouseleave', stopDrawing);
+
+	const clearButton = document.getElementById('clear');
+	clearButton.addEventListener('click', clearCanvas);
+
+	const saveButton = document.getElementById('save');
+	saveButton.addEventListener('click', saveCanvas);
+	setTimeout(()=> {
+		createPalette();
+	}, 1000)
+});
+
+
+function createPalette() {
+	//Create the canvas
+	const paletteContainer = document.getElementById('palette');
+	console.log("AAAAAA", paletteContainer.style.width)
+	let paletteCanvas = createHiPPICanvas(380, 176);
+	paletteContainer.appendChild(paletteCanvas);
+	//Get context
+	const paletteCtx = paletteCanvas.getContext('2d');
+	paletteCtx.imageSmoothingEnabled = false;
+	//Add the icons.
+	palette.forEach((item, i) => {
+		let thisTexture = textures["frames"][item.label];
+		console.log(item.label)
+		console.log(thisTexture);
+		console.log(texture)
+		paletteCtx.drawImage(texture, thisTexture.x, thisTexture.y, thisTexture.w, thisTexture.h, i*48-((48*8)*Math.floor(i/8)), Math.floor(i/8)*48, 32, 32);
+	});
 }
