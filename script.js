@@ -122,6 +122,7 @@ function createPalette() {
 	const paletteContainer = document.getElementById('palette');
 	console.log("AAAAAA", paletteContainer.style.width)
 	let paletteCanvas = createHiPPICanvas(380, 176);
+	paletteCanvas.id = "paletteCanvas";
 	paletteContainer.appendChild(paletteCanvas);
 	//Get context
 	const paletteCtx = paletteCanvas.getContext('2d');
@@ -129,9 +130,15 @@ function createPalette() {
 	//Add the icons.
 	palette.forEach((item, i) => {
 		let thisTexture = textures["frames"][item.label];
-		console.log(item.label)
-		console.log(thisTexture);
-		console.log(texture)
 		paletteCtx.drawImage(texture, thisTexture.x, thisTexture.y, thisTexture.w, thisTexture.h, i*48-((48*8)*Math.floor(i/8)), Math.floor(i/8)*48, 32, 32);
 	});
 }
+document.getElementById("palette").addEventListener("click", (e) => {
+	e.preventDefault();
+	//Check which button was clicked
+	const x = e.clientX - e.target.getBoundingClientRect().left;
+	const y = e.clientY - e.target.getBoundingClientRect().top;
+	let textureIndex = Math.floor(x/48) + Math.floor(y/48)*8;
+	console.log(palette[textureIndex]);
+	currentColor = palette[textureIndex].color;
+});
