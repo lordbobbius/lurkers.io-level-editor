@@ -9,16 +9,21 @@
 <body>
   <div class="toolbar">
     <button id="clear">Clear</button>
-    <button id="save">Save</button>
+    <button id="save">Export</button>
+    Z <input type="range" min="8" step="2" max="64" value="16" class="slider" id="pixelRange">
+    W <input type="number" id="width" name="width" min="8" value="96" max="320" />
+    H <input type="number" id="height" name="height" min="8" value="96" max="320" />
+    <button id="updateWH">Update W & H</button>
   </div>
 
   <div class="canvas-container" id="canvas-container">
 
   </div> 
-
   <div class="palette" id="palette">
   </div>
-
+  <div class="hidden" style="display:none;">
+    <canvas id="exportCanvas"></canvas>
+  </div>
   <!--The JSON file-->
   <script src="frames.js" type="text/javascript"></script>
   <script src="script.js"></script>
