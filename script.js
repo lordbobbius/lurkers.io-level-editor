@@ -1,6 +1,12 @@
 let texture = new Image();
 texture.src = "textures.png";
-
+let map = [];
+settings = {
+	mapWidth: 32,
+	mapHeight: 32,
+};
+let exportCanvas = document.getElementById("exportCanvas");
+let exportCtx = exportCanvas.getContext("2d");
 //Create canvas function
 function createHiPPICanvas(width, height) {
 	const ratio = window.devicePixelRatio;
@@ -15,130 +21,214 @@ function createHiPPICanvas(width, height) {
 	return canvas;
 }
 
-
 const canvas = createHiPPICanvas(window.innerWidth, window.innerHeight);
 document.getElementById("canvas-container").appendChild(canvas);
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;
 
-const pixelSize = 8;
-
-let currentColor = '#000000';
+let pixelSize = 8;
+let scrollX, scrollY;
+setScrollValues();
+function setScrollValues() {
+	scrollX = Math.floor(
+		(window.innerWidth - pixelSize * settings.mapWidth) / 2,
+	);
+	scrollY = Math.floor(
+		(window.innerHeight - pixelSize * settings.mapHeight) / 2,
+	);
+}
+//let currentColor = "#353535";
+let currentFrame = textures["frames"]["DirtBackgroundBlock"];
+currentFrame.color = palette[7].color;
 
 let isDrawing = false;
 
 function startDrawing(evt) {
 	isDrawing = true;
-	draw(evt);
+	addPixel(evt);
+}
+function addPixel(evt) {
+	if (!isDrawing) return;
+	const x = Math.floor((evt.offsetX - scrollX) / pixelSize);
+	const y = Math.floor((evt.offsetY - scrollY) / pixelSize);
+	console.log(x, y);
+	if (x >= 0 && y >= 0 && x < settings.mapWidth && y < settings.mapHeight) {
+		map[y][x] = currentFrame;
+	}
+	draw();
 }
 
 function stopDrawing() {
 	isDrawing = false;
 }
 
-function draw(evt) {
-	if (!isDrawing) return;
-
-	const x = Math.floor(evt.offsetX / pixelSize);
-	const y = Math.floor(evt.offsetY / pixelSize);
-
-	ctx.fillStyle = currentColor;
-	ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+function draw(exportit) {
+	if(exportit){
+		exportCanvas.width = settings.mapWidth;
+		exportCanvas.height = settings.mapHeight;
+		exportCtx.clearRect(0, 0, exportCanvas.width, exportCanvas.height);
+	}
+	else{
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		//start drawing
+		ctx.beginPath();
+		ctx.fillStyle = "#111";
+		ctx.rect(0, 0, canvas.width, canvas.height);
+		ctx.fill();
+		ctx.closePath();
+		ctx.beginPath();
+		ctx.fillStyle = "#64aaff";
+		ctx.rect(scrollX, scrollY, settings.mapWidth*pixelSize, settings.mapHeight*pixelSize);
+		ctx.fill();
+		ctx.closePath();
+	}
+	for (let i = 0; i < settings.mapHeight; i++) {
+		for (let j = 0; j < settings.mapWidth; j++) {
+			if (map[i][j] != undefined) {
+				if(!exportit){
+					let thisTexture = map[i][j];
+					ctx.drawImage(
+						texture,
+						thisTexture.x,
+						thisTexture.y,
+						thisTexture.w,
+						thisTexture.h,
+						j * pixelSize + scrollX,
+						i * pixelSize + scrollY,
+						pixelSize,
+						pixelSize,
+					);
+					console.log("t", thisTexture);
+				}
+				else{
+					let thisTexture = map[i][j];
+					exportCtx.beginPath();
+					exportCtx.fillStyle = thisTexture.color;
+					exportCtx.rect(j, i, 1, 1);
+					exportCtx.fill();
+					exportCtx.closePath();
+				}
+			}
+		}
+	}
 }
-
-
 function clearCanvas() {
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	//clear the map
+	for (let i = 0; i < settings.mapHeight; i++) {
+		for (let j = 0; j < settings.mapWidth; j++) {
+			map[i][j] = undefined;
+		}
+	}
+	draw();
 }
 
 function saveCanvas() {
-	const dataURL = canvas.toDataURL('image/png');
-	const link = document.createElement('a');
-	link.download = 'bitmap-image.png';
+	draw(true);
+	const dataURL = exportCanvas.toDataURL("image/png");
+	const link = document.createElement("a");
+	link.download = "bitmap-image.png";
 	link.href = dataURL;
 	link.click();
 }
 
-function setCurrentColor(color) {
-	currentColor = color;
+function initializeMap() {
+	map = [];
+	for (let i = 0; i < settings.mapHeight; i++) {
+		map.push([]);
+		for (let j = 0; j < settings.mapWidth; j++) {
+			map[i].push(undefined);
+		}
+	}
 }
+document.onreadystatechange = function () {
+	if (document.readyState == "complete") {
+		canvas.addEventListener("mousedown", startDrawing);
+		canvas.addEventListener("mouseup", stopDrawing);
+		canvas.addEventListener("mousemove", addPixel);
+		canvas.addEventListener("mouseleave", stopDrawing);
+		document.getElementById("updateWH").addEventListener("click", function (){
+			let sure = confirm("This will reset the your drawings. Do you want to continue?");
+			if(sure){
+				settings.mapWidth = document.getElementById("width").value;
+				settings.mapHeight = document.getElementById("height").value;
+				console.log("Width: ", settings.mapWidth, "Height: ", settings.mapHeight);
+				initializeMap();
+				setScrollValues();
+				draw();
+			}
+		})
 
-const palette = [
-	//{ label: 'AirBlock', color: '#87ceeb' },
-	//{ label: 'BackgroundBlock', color: '#015c1d' },
-	{ label: 'BedrockBlock', color: '#353535' },
-	{ label: 'BerryBushBlock', color: '#840b0b' },
-	//{ label: 'Block', color: '#ffffff' },
-	{ label: 'BrickBackgroundBlock', color: '#222222' },
-	{ label: 'BrickBlock', color: '#444444' },
-	{ label: 'CoalBlock', color: '#0e0e0e' },
-	{ label: 'CreepBlock', color: '#2a2e2b' },
-	{ label: 'DirtBackgroundBlock', color: '#271e03' },
-	{ label: 'DirtBlock', color: '#85480f' },
-	//{ label: 'FarmingBlock', color: '#c7a231' },
-	{ label: 'GoldBlock', color: '#fdc53b' },
-	{ label: 'Grass', color: '#659d00' },
-	{ label: 'IronBlock', color: '#8c7054' },
-	{ label: 'IronSpikeBlock', color: '#888999' },
-	{ label: 'LadderBlock', color: '#97865d' },
-	{ label: 'MithrilBlock', color: '#23a7d9' },
-	{ label: 'PlatformBlock', color: '#aa621f' },
-	{ label: 'ShingleBlock', color: '#3367a1' },
-	{ label: 'Snow', color: '#d7ded8' },
-	{ label: 'StairBrickBlock', color: '#4b5a81' },
-	{ label: 'StairWoodBlock', color: '#9b6518' },
-	{ label: 'SteelBlock', color: '#a0a0a0' },
-	{ label: 'StoneBackgroundBlock', color: '#2f552d' },
-	{ label: 'StoneBlock', color: '#999497' },
-	//{ label: 'StructureBlock', color: '#767676' },
-	{ label: 'TorchBlock', color: '#edbb4f' },
-	{ label: 'BirchLeaves', color: '#2f7b32' },
-	{ label: 'BirchSapling', color: '#c6843c' },
-	{ label: 'BirchTrunk', color: '#7b3c14' },
-	{ label: 'WaterBlock', color: '#365cab' },
-	{ label: 'WoodBackgroundBlock', color: '#47200b' },
-	{ label: 'WoodBlock', color: '#aa761f' },
-	{ label: 'WoodSpikeBlock', color: '#aa5a1a' }
-];
+		const clearButton = document.getElementById("clear");
+		clearButton.addEventListener("click", clearCanvas);
 
-document.addEventListener('DOMContentLoaded', () => {
-	canvas.addEventListener('mousedown', startDrawing);
-	canvas.addEventListener('mouseup', stopDrawing);
-	canvas.addEventListener('mousemove', draw);
-	canvas.addEventListener('mouseleave', stopDrawing);
-
-	const clearButton = document.getElementById('clear');
-	clearButton.addEventListener('click', clearCanvas);
-
-	const saveButton = document.getElementById('save');
-	saveButton.addEventListener('click', saveCanvas);
-	setTimeout(()=> {
+		const saveButton = document.getElementById("save");
+		saveButton.addEventListener("click", saveCanvas);
+		document.addEventListener("keydown", function (event) {
+			const key = event.key; // "a", "1", "Shift", etc.
+			console.log(key);
+			if (key === "w" || key === "ArrowUp") {
+				scrollY += 10;
+			} else if (key === "s" || key === "ArrowDown") {
+				scrollY -= 10;
+			} else if (key === "a" || key === "ArrowLeft") {
+				scrollX += 10;
+			} else if (key === "d" || key === "ArrowRight") {
+				scrollX -= 10;
+			}
+			draw();
+		});
+		document.getElementById("pixelRange").oninput = function () {
+			pixelSize = this.value;
+			console.log("YAY", pixelSize);
+			setScrollValues();
+			draw();
+		}
+		//setTimeout(() => {
 		createPalette();
-	}, 1000)
-});
+		//}, 1000);
 
+		//initialise map
+		initializeMap();
+		//Draw
+		draw();
+	}
+};
 
 function createPalette() {
 	//Create the canvas
-	const paletteContainer = document.getElementById('palette');
-	console.log("AAAAAA", paletteContainer.style.width)
+	const paletteContainer = document.getElementById("palette");
+	console.log("AAAAAA", paletteContainer.style.width);
 	let paletteCanvas = createHiPPICanvas(380, 176);
 	paletteCanvas.id = "paletteCanvas";
 	paletteContainer.appendChild(paletteCanvas);
 	//Get context
-	const paletteCtx = paletteCanvas.getContext('2d');
+	const paletteCtx = paletteCanvas.getContext("2d");
 	paletteCtx.imageSmoothingEnabled = false;
 	//Add the icons.
 	palette.forEach((item, i) => {
 		let thisTexture = textures["frames"][item.label];
-		paletteCtx.drawImage(texture, thisTexture.x, thisTexture.y, thisTexture.w, thisTexture.h, i*48-((48*8)*Math.floor(i/8)), Math.floor(i/8)*48, 32, 32);
+		paletteCtx.drawImage(
+			texture,
+			thisTexture.x,
+			thisTexture.y,
+			thisTexture.w,
+			thisTexture.h,
+			i * 48 - 48 * 8 * Math.floor(i / 8),
+			Math.floor(i / 8) * 48,
+			32,
+			32,
+		);
+	});
+	document.getElementById("palette").addEventListener("click", (e) => {
+		e.preventDefault();
+		//Check which button was clicked
+		const x = e.clientX - e.target.getBoundingClientRect().left;
+		const y = e.clientY - e.target.getBoundingClientRect().top;
+		let textureIndex = Math.floor(x / 48) + Math.floor(y / 48) * 8;
+		console.log(palette[textureIndex]);
+		//currentColor = palette[textureIndex].color;
+		currentFrame = textures["frames"][palette[textureIndex].label];
+		currentFrame.color = palette[textureIndex].color;
+		console.log("Current", currentFrame);
 	});
 }
-document.getElementById("palette").addEventListener("click", (e) => {
-	e.preventDefault();
-	//Check which button was clicked
-	const x = e.clientX - e.target.getBoundingClientRect().left;
-	const y = e.clientY - e.target.getBoundingClientRect().top;
-	let textureIndex = Math.floor(x/48) + Math.floor(y/48)*8;
-	console.log(palette[textureIndex]);
-	currentColor = palette[textureIndex].color;
-});
